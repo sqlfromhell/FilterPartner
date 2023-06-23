@@ -56,84 +56,11 @@ public static class FilterPartner
         return result;
     }
 
-    public static object Cast(this object obj, Type type)
-    {
-        if (obj is null || obj == DBNull.Value)
-            return null;
-
-        return Convert.ChangeType(obj, type);
-    }
-
-    public static T Cast<T>(this object obj)
-        => (T)obj.Cast(typeof(T));
-
-    public static IEnumerable CastTo
-        (this IEnumerable lst, Type type)
-    {
-        if (lst is null) yield break;
-
-        foreach (var item in lst)
-            yield return item.Cast(type);
-    }
-
-    public static IEnumerable<T> CastTo<T>
-        (this IEnumerable lst)
-    {
-        if (lst is null) yield break;
-
-        foreach (var item in lst)
-            yield return item.Cast<T>();
-    }
-
-    public static bool HasInterface<T>
-        (this Type type)
-        => type.GetInterfaces()
-            .Contains(typeof(T));
-
-    public static bool HasInterface
-        (this Type type, Type typeInterface)
-        => type.GetInterfaces()
-            .Contains(typeInterface);
-
-    public static bool IsEnumerable
-        (this Type type)
-        => type.HasInterface<IEnumerable>();
-
-    public static bool IsEnumerable<T>
-        (this Type type)
-        => type.HasInterface<IEnumerable<T>>();
-
-    public static bool IsNullableType
-            (this Type type)
-        => type.IsGenericType
-            && type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
-
-    public static Array ToArrayOf
-        (this IEnumerable lst, Type type)
-    {
-        List<object> lst2 = new();
-
-        foreach (var item in lst.CastTo(type))
-            lst2.Add(item);
-
-        var arrayFrom = lst2.ToArray() as Array;
-
-        var array = Array
-            .CreateInstance(type, arrayFrom.Length);
-
-        Array.Copy(arrayFrom, array, arrayFrom.Length);
-
-        return array;
-    }
-
-    public static Array ToArrayOf<T>
-        (this IEnumerable lst)
-        => lst.ToArrayOf(typeof(T));
-
     private static IQueryable<T> ApplyFilter<T>
         (this IQueryable<T> query, CustomFilterExpression filter)
     {
-        var lambda = filter.Expression as Expression<Func<T, bool>> ?? throw new ArgumentException($"Invalid filter: {filter.GetType().Name}");
+        var lambda = filter.Expression as Expression<Func<T, bool>>
+            ?? throw new ArgumentException($"Invalid filter: {filter.GetType().Name}");
         return query.Where(lambda);
     }
 
@@ -141,7 +68,8 @@ public static class FilterPartner
         (this IQueryable<T> query, FilterExpression filter)
     {
         var parameter = Expression.Parameter(typeof(T), "x");
-        var lambda = Expression.Lambda<Func<T, bool>>(ParseFilterExpression<T>(filter, parameter), parameter);
+        var lambda = Expression.Lambda<Func<T, bool>>(
+            ParseFilterExpression<T>(filter, parameter), parameter);
         return query.Where(lambda);
     }
 
@@ -151,16 +79,23 @@ public static class FilterPartner
         var parameter = Expression.Parameter(typeof(T), "x");
 
         var propertyBindings = new List<MemberAssignment>();
+
         foreach (var propertyName in selectProperties)
         {
             var property = Expression.Property(parameter, propertyName);
-            var member = typeof(T).GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
+            var member = typeof(T).GetProperty(propertyName,
+                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+
             var bind = Expression.Bind(member, property);
+
             propertyBindings.Add(bind);
         }
 
         var newExpression = Expression.New(typeof(T));
-        var memberInitExpression = Expression.MemberInit(newExpression, propertyBindings);
+
+        var memberInitExpression = Expression
+            .MemberInit(newExpression, propertyBindings);
 
         var selector = Expression.Lambda<Func<T, T>>(memberInitExpression, parameter);
         return query.Select(selector);
@@ -171,9 +106,14 @@ public static class FilterPartner
     {
         var parameter = Expression.Parameter(typeof(T), "x");
         var property = Expression.Property(parameter, sort.Name);
-        var lambda = Expression.Lambda<Func<T, object>>(Expression.Convert(property, typeof(object)), parameter);
+        var lambda = Expression.Lambda<Func<T, object>>(
+                Expression.Convert(property, typeof(object)),
+                parameter
+            );
 
-        query = sort.Direction == SortDirection.Ascending ? query.OrderBy(lambda) : (IQueryable<T>)query.OrderByDescending(lambda);
+        query = sort.Direction == SortDirection.Ascending
+            ? query.OrderBy(lambda)
+            : (IQueryable<T>)query.OrderByDescending(lambda);
 
         return query;
     }
@@ -181,8 +121,10 @@ public static class FilterPartner
     private static Expression ParseFilterExpression<T>
         (FilterExpression filter, ParameterExpression parameter)
     {
-        PropertyInfo propertyInfo = typeof(T).GetProperty(filter.Name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance)
+        PropertyInfo propertyInfo = typeof(T).GetProperty(filter.Name,
+            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance)
             ?? throw new ArgumentException($"Invalid property name: {filter.Name}");
+
         Expression left = Expression.Property(parameter, propertyInfo);
 
         Expression right;
@@ -215,18 +157,36 @@ public static class FilterPartner
 
         Expression expression = filter.Operator switch
         {
-            FilterOperator.Equals => Expression.Equal(left, right),
-            FilterOperator.NotEquals => Expression.NotEqual(left, right),
-            FilterOperator.GreaterThan => Expression.GreaterThan(left, right),
-            FilterOperator.LessThan => Expression.LessThan(left, right),
-            FilterOperator.GreaterThanOrEqual => Expression.GreaterThanOrEqual(left, right),
-            FilterOperator.LessThanOrEqual => Expression.LessThanOrEqual(left, right),
-            FilterOperator.StartsWith => Expression.Call(left, typeof(string).GetMethod("StartsWith", new[] { typeof(string) }), right),
-            FilterOperator.EndsWith => Expression.Call(left, typeof(string).GetMethod("EndsWith", new[] { typeof(string) }), right),
-            FilterOperator.Contains => Expression.Call(left, typeof(string).GetMethod("Contains", new[] { typeof(string) }), right),
-            FilterOperator.NotContains => Expression.Not(Expression.Call(left, typeof(string).GetMethod("Contains", new[] { typeof(string) }), right)),
-            FilterOperator.In => Expression.Call(typeof(Enumerable), "Contains", new[] { propertyInfo.PropertyType }, right, left),
-            FilterOperator.NotIn => Expression.Not(Expression.Call(typeof(Enumerable), "Contains", new[] { propertyInfo.PropertyType }, right, left)),
+            FilterOperator.Equals
+                => Expression.Equal(left, right),
+            FilterOperator.NotEquals
+                => Expression.NotEqual(left, right),
+            FilterOperator.GreaterThan
+                => Expression.GreaterThan(left, right),
+            FilterOperator.LessThan
+                => Expression.LessThan(left, right),
+            FilterOperator.GreaterThanOrEqual
+                => Expression.GreaterThanOrEqual(left, right),
+            FilterOperator.LessThanOrEqual
+                => Expression.LessThanOrEqual(left, right),
+            FilterOperator.StartsWith
+                => Expression.Call(left, typeof(string).GetMethod("StartsWith",
+                    new[] { typeof(string) }), right),
+            FilterOperator.EndsWith
+                => Expression.Call(left, typeof(string).GetMethod("EndsWith",
+                    new[] { typeof(string) }), right),
+            FilterOperator.Contains
+                => Expression.Call(left, typeof(string).GetMethod("Contains",
+                    new[] { typeof(string) }), right),
+            FilterOperator.NotContains
+                => Expression.Not(Expression.Call(left, typeof(string).GetMethod("Contains",
+                    new[] { typeof(string) }), right)),
+            FilterOperator.In
+                => Expression.Call(typeof(Enumerable), "Contains",
+                    new[] { propertyInfo.PropertyType }, right, left),
+            FilterOperator.NotIn
+                => Expression.Not(Expression.Call(typeof(Enumerable), "Contains",
+                    new[] { propertyInfo.PropertyType }, right, left)),
             _ => throw new NotSupportedException($"Filter operator {filter.Operator} is not supported."),
         };
         return expression;

@@ -1,30 +1,26 @@
-﻿using NUnit.Framework;
+﻿using FilterDemo.Entities;
+using NUnit.Framework;
 using System.Linq.Expressions;
 
-namespace FilterDemo;
+namespace FilterDemo.Tests;
 
 [TestFixture]
 public class CustomerFilterTests
 {
-    private List<Customer> _customers;
-
-    [SetUp]
-    public void Setup()
-    {
-        // Sample list of customers for testing
-        _customers = new List<Customer>
-            {
-                new Customer { Id = 1, Name = "John Doe", Age = 30, Address = "123 Main St" },
-                new Customer { Id = 2, Name = "Jane Smith", Age = 25, Address = "456 Elm St" },
-                new Customer { Id = 3, Name = "Mike Johnson", Age = 40, Address = "789 Oak St" },
-                new Customer { Id = 4, Name = "Alice Cooper", Age = 30, Address = "321 Pine St" },
-                // Add more customers as needed
-            };
-    }
+    private readonly List<Customer> Customers
+        = new()
+        {
+            new Customer { Id = 1, Name = "John Doe", Age = 30, Address = "123 Main St" },
+            new Customer { Id = 2, Name = "Jane Smith", Age = 25, Address = "456 Elm St" },
+            new Customer { Id = 3, Name = "Mike Johnson", Age = 40, Address = "789 Oak St" },
+            new Customer { Id = 4, Name = "Alice Cooper", Age = 30, Address = "321 Pine St" },
+        };
 
     [Test]
     public void Should_Filter_By_Contains()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -38,7 +34,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(1, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Address.Contains("Main")));
@@ -47,6 +47,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_EndsWith()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -60,7 +62,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(1, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Name.EndsWith("Smith")));
@@ -69,6 +75,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_Equality()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -82,7 +90,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(2, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Age == 30));
@@ -91,6 +103,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_GreaterThan()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -104,7 +118,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(1, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Age > 30));
@@ -126,7 +144,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(3, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Age >= 30));
@@ -154,7 +176,7 @@ public class CustomerFilterTests
 
         // Act
 
-        var rs = _customers.AsQueryable()
+        var rs = Customers.AsQueryable()
             .ApplyFilters(rq).Data
             .ToList();
 
@@ -187,7 +209,7 @@ public class CustomerFilterTests
 
         // Act
 
-        var rs = _customers.AsQueryable()
+        var rs = Customers.AsQueryable()
             .ApplyFilters(rq).Data
             .ToList();
 
@@ -201,6 +223,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_Inequality()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -214,7 +238,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(2, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Age != 30));
@@ -223,6 +251,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_LessThan()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -236,7 +266,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(1, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Age < 30));
@@ -245,6 +279,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_LessThanOrEqual()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -258,7 +294,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(3, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Age <= 30));
@@ -267,6 +307,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_NotContains()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -280,7 +322,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(0, filteredCustomers.Count);
         Assert.IsFalse(filteredCustomers.Any(c => c.Address.Contains("St")));
@@ -308,7 +354,7 @@ public class CustomerFilterTests
 
         // Act
 
-        var rs = _customers.AsQueryable()
+        var rs = Customers.AsQueryable()
             .ApplyFilters(rq).Data
             .ToList();
 
@@ -341,7 +387,7 @@ public class CustomerFilterTests
 
         // Act
 
-        var rs = _customers.AsQueryable()
+        var rs = Customers.AsQueryable()
             .ApplyFilters(rq).Data
             .ToList();
 
@@ -355,6 +401,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_By_StartsWith()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Filters = new List<FilterExpression>
@@ -368,7 +416,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(1, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(c => c.Name.StartsWith("John")));
@@ -377,6 +429,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Filter_Using_CustomExpression()
     {
+        // Arrange
+
         static bool func(Customer c) => c.Age > 30;
 
         Expression<Func<Customer, bool>> exp = c => c.Age > 30;
@@ -392,7 +446,11 @@ public class CustomerFilterTests
                 }
         };
 
-        var filteredCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var filteredCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(1, filteredCustomers.Count);
         Assert.IsTrue(filteredCustomers.All(func));
@@ -401,12 +459,18 @@ public class CustomerFilterTests
     [Test]
     public void Should_Get_TotalCount_Without_Pagination()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Count = true
         };
 
-        var totalCount = _customers.AsQueryable().ApplyFilters(filterParameters).TotalCount;
+        // Act
+
+        var totalCount = Customers.AsQueryable().ApplyFilters(filterParameters).TotalCount;
+
+        // Assert
 
         Assert.AreEqual(4, totalCount);
     }
@@ -414,6 +478,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Paginate_Results()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Page = 2,
@@ -421,7 +487,11 @@ public class CustomerFilterTests
             Count = true
         };
 
-        var paginatedResult = _customers.AsQueryable().ApplyFilters(filterParameters);
+        // Act
+
+        var paginatedResult = Customers.AsQueryable().ApplyFilters(filterParameters);
+
+        // Assert
 
         Assert.AreEqual(2, paginatedResult.Data.Count);
         Assert.AreEqual(2, paginatedResult.Page);
@@ -432,12 +502,18 @@ public class CustomerFilterTests
     [Test]
     public void Should_Select_Properties()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Select = new List<string> { "Id", "Name" }
         };
 
-        var selectedCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
+
+        var selectedCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        // Assert
 
         Assert.AreEqual(4, selectedCustomers.Count);
         Assert.IsTrue(selectedCustomers.All(c => c.Age == 0 && c.Address == null));
@@ -446,6 +522,8 @@ public class CustomerFilterTests
     [Test]
     public void Should_Sort_By_Name_Ascending()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Sort = new SortExpression
@@ -455,15 +533,22 @@ public class CustomerFilterTests
             }
         };
 
-        var sortedCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
 
-        var expectedOrder = _customers.OrderBy(c => c.Name).ToList();
+        var sortedCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        var expectedOrder = Customers.OrderBy(c => c.Name).ToList();
+
+        // Assert
+
         Assert.AreEqual(expectedOrder, sortedCustomers);
     }
 
     [Test]
     public void Should_Sort_By_Name_Descending()
     {
+        // Arrange
+
         var filterParameters = new FilterRequest
         {
             Sort = new SortExpression
@@ -473,9 +558,14 @@ public class CustomerFilterTests
             }
         };
 
-        var sortedCustomers = _customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+        // Act
 
-        var expectedOrder = _customers.OrderByDescending(c => c.Name).ToList();
+        var sortedCustomers = Customers.AsQueryable().ApplyFilters(filterParameters).Data.ToList();
+
+        var expectedOrder = Customers.OrderByDescending(c => c.Name).ToList();
+
+        // Assert
+
         Assert.AreEqual(expectedOrder, sortedCustomers);
     }
 }

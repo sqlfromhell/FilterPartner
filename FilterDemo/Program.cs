@@ -1,15 +1,13 @@
 ﻿using FilterDemo;
+using FilterDemo.Entities;
 
-// Sample list of customers
 var customers = new List<Customer>
-    {
-        new Customer { Id = 1, Name = "John Doe", Age = 30, Address = "123 Main St" },
-        new Customer { Id = 2, Name = "Jane Smith", Age = 25, Address = "456 Elm St" },
-        new Customer { Id = 3, Name = "Mike Johnson", Age = 40, Address = "789 Oak St" },
-        // Add more customers as needed
-    };
+{
+    new Customer { Id = 1, Name = "John Doe", Age = 30, Address = "123 Main St" },
+    new Customer { Id = 2, Name = "Jane Smith", Age = 25, Address = "456 Elm St" },
+    new Customer { Id = 3, Name = "Mike Johnson", Age = 40, Address = "789 Oak St" },
+};
 
-// Example filter parameters
 var filterParameters = new FilterRequest
 {
     Filters = new()
@@ -38,20 +36,12 @@ var filterParameters = new FilterRequest
     Count = true
 };
 
-// Apply filters to the customer list
-var filteredResult = customers.AsQueryable()
+var result = customers.AsQueryable()
     .ApplyFilters(filterParameters);
 
-// Access the filtered data and other information
-var filteredCustomers = filteredResult.Data;
-var totalCount = filteredResult.TotalCount;
-var currentPage = filteredResult.Page;
-var pageSize = filteredResult.PageSize;
+Console.WriteLine($"Filtered Customers (Page {result.Page}/{result.PageCount}):");
 
-// Display the filtered results
-Console.WriteLine($"Filtered Customers (Page {currentPage}/{Math.Ceiling((double)totalCount / pageSize)}):");
-
-foreach (var customer in filteredCustomers)
+foreach (var customer in result.Data)
 {
     Console.WriteLine($"ID: {customer.Id}, Name: {customer.Name}");
 }

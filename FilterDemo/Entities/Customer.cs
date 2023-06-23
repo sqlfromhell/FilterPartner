@@ -1,4 +1,4 @@
-﻿namespace FilterDemo;
+﻿namespace FilterDemo.Entities;
 
 public class Customer
 {
