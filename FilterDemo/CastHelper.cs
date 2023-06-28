@@ -48,11 +48,6 @@ internal static class CastHelper
         (this Type type)
         => type.GetGenericArguments()[0];
 
-    public static bool HasInterface<T>
-        (this Type type)
-        => type.GetInterfaces()
-            .Contains(typeof(T));
-
     public static bool IsNullableType
         (this Type type)
         => type.IsGenericType
