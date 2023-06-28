@@ -28,8 +28,8 @@ public class FilterResponse<T>
 
     public int PageCount
         => PageSize > 0
-            ? (int)Math.Ceiling((double)TotalCount / PageSize)
-            : 0;
+        ? (int)Math.Ceiling((double)TotalCount / PageSize)
+        : 0;
 
     public int PageSize { get; set; }
 

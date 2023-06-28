@@ -64,22 +64,29 @@ public class FilterRequest
 
         foreach (var propertyName in Select)
         {
-            var property = Expression.Property(parameter, propertyName);
+            var property = Expression
+                .Property(parameter, propertyName);
 
-            var member = typeof(T).GetProperty(propertyName,
-                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+            var member = typeof(T)
+                .GetProperty(propertyName,
+                    BindingFlags.IgnoreCase
+                    | BindingFlags.Public
+                    | BindingFlags.Instance);
 
-            var bind = Expression.Bind(member, property);
+            var bind = Expression
+                .Bind(member, property);
 
             propertyBindings.Add(bind);
         }
 
-        var newExpression = Expression.New(typeof(T));
+        var newExpression = Expression
+            .New(typeof(T));
 
         var memberInitExpression = Expression
             .MemberInit(newExpression, propertyBindings);
 
-        var selector = Expression.Lambda<Func<T, T>>(memberInitExpression, parameter);
+        var selector = Expression.Lambda<Func<T, T>>
+            (memberInitExpression, parameter);
 
         return query.Select(selector);
     }

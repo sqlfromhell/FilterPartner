@@ -8,13 +8,35 @@ namespace FilterDemo.Tests;
 public class CustomerFilterTest
 {
     private readonly List<Customer> Customers
-        = new()
-        {
-            new() { Id = 1, Name = "John Doe", Age = 30, Address = "123 Main St" },
-            new() { Id = 2, Name = "Jane Smith", Age = 25, Address = "456 Elm St" },
-            new() { Id = 3, Name = "Mike Johnson", Age = 40, Address = "789 Oak St" },
-            new() { Id = 4, Name = "Alice Cooper", Age = 30, Address = "321 Pine St" },
-        };
+    = new()
+    {
+        new() {
+            Id = 1,
+            Name = "John Doe",
+            Age = 30,
+            Address = "123 Main St",
+            BirthDate = new(1986, 12, 2)
+        },
+        new() {
+            Id = 2,
+            Name = "Jane Smith",
+            Age = 25,
+            Address = "456 Elm St",
+            BirthDate = new(1991, 8, 2)
+        },
+        new() {
+            Id = 3,
+            Name = "Mike Johnson",
+            Age = 40,
+            Address = "789 Oak St"
+        },
+        new() {
+            Id = 4,
+            Name = "Alice Cooper",
+            Age = 30,
+            Address = "321 Pine St"
+        },
+    };
 
     [Test]
     public void Should_Apply()
@@ -161,6 +183,37 @@ public class CustomerFilterTest
     }
 
     [Test]
+    public void Should_Filter_By_Contains_Json()
+    {
+        // Arrange
+
+        var json = JsonDocument.Parse("\"Main\"")
+            .RootElement;
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.Address),
+                    Value = json,
+                    Operator = FilterOperator.Contains
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq.Apply(Customers).Data.ToList();
+
+        // Assert
+
+        Assert.AreEqual(1, rs.Count);
+        Assert.IsTrue(rs.All(c => c.Address.Contains("Main")));
+    }
+
+    [Test]
     public void Should_Filter_By_EndsWith()
     {
         // Arrange
@@ -201,6 +254,65 @@ public class CustomerFilterTest
                 {
                     Name = nameof(Customer.Age),
                     Value = 30,
+                    Operator = FilterOperator.Equals
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq.Apply(Customers).Data.ToList();
+
+        // Assert
+
+        Assert.AreEqual(2, rs.Count);
+        Assert.IsTrue(rs.All(c => c.Age == 30));
+    }
+
+    [Test]
+    public void Should_Filter_By_Equality_BirthDate()
+    {
+        // Arrange
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.BirthDate),
+                    Value = "1986-12-02T00:00:00",
+                    Operator = FilterOperator.Equals
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq.Apply(Customers).Data.ToList();
+
+        // Assert
+
+        Assert.AreEqual(1, rs.Count);
+        Assert.IsTrue(rs.All(c => c.BirthDate == new DateTime(1986, 12, 2)));
+    }
+
+    [Test]
+    public void Should_Filter_By_Equality_Json()
+    {
+        // Arrange
+
+        var json = JsonDocument.Parse("30")
+            .RootElement;
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.Age),
+                    Value = json,
                     Operator = FilterOperator.Equals
                 }
             }
@@ -300,11 +412,11 @@ public class CustomerFilterTest
 
         Assert.That(rs, Has.Count.EqualTo(2));
 
-        Assert.That(rs.All(c => ages.Contains(c.Age)), Is.True);
+        Assert.That(rs.All(c => c.Age.HasValue && ages.Contains(c.Age.Value)), Is.True);
     }
 
     [Test]
-    public void Should_Filter_By_In_JsonElement()
+    public void Should_Filter_By_In_Json()
     {
         // Arrange
 
@@ -336,7 +448,7 @@ public class CustomerFilterTest
 
         Assert.That(rs, Has.Count.EqualTo(2));
 
-        Assert.That(rs.All(c => ages.Contains(c.Age)), Is.True);
+        Assert.That(rs.All(c => c.Age.HasValue && ages.Contains(c.Age.Value)), Is.True);
     }
 
     [Test]
@@ -369,7 +481,40 @@ public class CustomerFilterTest
 
         Assert.That(rs, Has.Count.EqualTo(2));
 
-        Assert.That(rs.All(c => ages.Contains(c.Age)), Is.True);
+        Assert.That(rs.All(c => c.Age.HasValue && ages.Contains(c.Age.Value)), Is.True);
+    }
+
+    [Test]
+    public void Should_Filter_By_In_String()
+    {
+        // Arrange
+
+        var names = new[] { "John Doe", "Jane Smith" };
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.Name),
+                    Value = names,
+                    Operator = FilterOperator.In
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq
+            .Apply(Customers).Data
+            .ToList();
+
+        // Assert
+
+        Assert.That(rs, Has.Count.EqualTo(2));
+
+        Assert.That(rs.All(c => names.Contains(c.Name)), Is.True);
     }
 
     [Test]
@@ -385,6 +530,65 @@ public class CustomerFilterTest
                 {
                     Name = nameof(Customer.Age),
                     Value = 30,
+                    Operator = FilterOperator.NotEquals
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq.Apply(Customers).Data.ToList();
+
+        // Assert
+
+        Assert.AreEqual(2, rs.Count);
+        Assert.IsTrue(rs.All(c => c.Age != 30));
+    }
+
+    [Test]
+    public void Should_Filter_By_Inequality_BirthDate()
+    {
+        // Arrange
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.BirthDate),
+                    Value = "1986-12-02T00:00:00",
+                    Operator = FilterOperator.NotEquals
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq.Apply(Customers).Data.ToList();
+
+        // Assert
+
+        Assert.AreEqual(3, rs.Count);
+        Assert.IsTrue(rs.All(c => c.BirthDate != new DateTime(1986, 12, 2)));
+    }
+
+    [Test]
+    public void Should_Filter_By_Inequality_Json()
+    {
+        // Arrange
+
+        var json = JsonDocument.Parse("30")
+            .RootElement;
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.Age),
+                    Value = json,
                     Operator = FilterOperator.NotEquals
                 }
             }
@@ -481,6 +685,39 @@ public class CustomerFilterTest
         // Assert
 
         Assert.AreEqual(0, rs.Count);
+
+        Assert.IsFalse(rs.Any(c => c.Address.Contains("St")));
+    }
+
+    [Test]
+    public void Should_Filter_By_NotContains_Json()
+    {
+        // Arrange
+
+        var json = JsonDocument.Parse("\"St\"")
+            .RootElement;
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.Address),
+                    Value = json,
+                    Operator = FilterOperator.NotContains
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq.Apply(Customers).Data.ToList();
+
+        // Assert
+
+        Assert.AreEqual(0, rs.Count);
+
         Assert.IsFalse(rs.Any(c => c.Address.Contains("St")));
     }
 
@@ -514,7 +751,7 @@ public class CustomerFilterTest
 
         Assert.That(rs, Has.Count.EqualTo(2));
 
-        Assert.That(rs.All(c => !ages.Contains(c.Age)), Is.True);
+        Assert.That(rs.All(c => !c.Age.HasValue || !ages.Contains(c.Age.Value)), Is.True);
     }
 
     [Test]
@@ -550,7 +787,7 @@ public class CustomerFilterTest
 
         Assert.That(rs, Has.Count.EqualTo(2));
 
-        Assert.That(rs.All(c => !ages.Contains(c.Age)), Is.True);
+        Assert.That(rs.All(c => !c.Age.HasValue || !ages.Contains(c.Age.Value)), Is.True);
     }
 
     [Test]
@@ -583,7 +820,40 @@ public class CustomerFilterTest
 
         Assert.That(rs, Has.Count.EqualTo(2));
 
-        Assert.That(rs.All(c => !ages.Contains(c.Age)), Is.True);
+        Assert.That(rs.All(c => !c.Age.HasValue || !ages.Contains(c.Age.Value)), Is.True);
+    }
+
+    [Test]
+    public void Should_Filter_By_NotIn_String()
+    {
+        // Arrange
+
+        var names = new[] { "John Doe", "Jane Smith" };
+
+        FilterRequest rq = new()
+        {
+            Filters = new()
+            {
+                new()
+                {
+                    Name = nameof(Customer.Name),
+                    Value = names,
+                    Operator = FilterOperator.NotIn
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq
+            .Apply(Customers).Data
+            .ToList();
+
+        // Assert
+
+        Assert.That(rs, Has.Count.EqualTo(2));
+
+        Assert.That(!rs.All(c => names.Contains(c.Name)), Is.True);
     }
 
     [Test]
@@ -709,7 +979,8 @@ public class CustomerFilterTest
         // Assert
 
         Assert.AreEqual(4, rs.Count);
-        Assert.IsTrue(rs.All(c => c.Age == 0 && c.Address == null));
+
+        Assert.IsTrue(rs.All(c => c.Age == null && c.Address == null));
     }
 
     [Test]
@@ -765,7 +1036,8 @@ public class CustomerFilterTest
     public class Customer
     {
         public string Address { get; set; }
-        public int Age { get; set; }
+        public int? Age { get; set; }
+        public DateTime? BirthDate { get; set; }
         public int Id { get; set; }
         public string Name { get; set; }
     }

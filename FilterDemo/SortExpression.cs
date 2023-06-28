@@ -10,14 +10,16 @@ public class SortExpression
     public IQueryable<T> Apply<T>
         (IQueryable<T> query)
     {
-        var parameter = Expression.Parameter(typeof(T), "x");
+        var parameter = Expression
+            .Parameter(typeof(T), "x");
 
-        var property = Expression.Property(parameter, Name);
+        var property = Expression
+            .Property(parameter, Name);
 
         var lambda = Expression.Lambda<Func<T, object>>(
-                Expression.Convert(property, typeof(object)),
-                parameter
-            );
+            Expression.Convert(property, typeof(object)),
+            parameter
+        );
 
         query = Direction == SortDirection.Ascending
             ? query.OrderBy(lambda)

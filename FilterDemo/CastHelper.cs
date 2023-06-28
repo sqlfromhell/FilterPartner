@@ -1,4 +1,4 @@
-﻿// Ignore Spelling: Nullable
+// Ignore Spelling: Nullable
 
 using System.Collections;
 using System.Text.Json;
@@ -7,10 +7,23 @@ namespace FilterDemo;
 
 internal static class CastHelper
 {
-    public static object Cast(this object obj, Type type)
+    public static object Cast
+        (this object obj, Type type)
         => obj is null || obj == DBNull.Value
             ? null
+            : obj is JsonElement element
+            ? element.Cast(type)
+            : type.IsNullableType()
+            ? Convert.ChangeType(obj, type.GetTypeOfGeneric())
             : Convert.ChangeType(obj, type);
+
+    public static object Cast
+        (this JsonElement element, Type type)
+        => (
+            element.ValueKind == JsonValueKind.String
+                ? element.GetString()
+                : element.GetRawText()
+        ).Cast(type);
 
     public static IEnumerable CastTo
         (this IEnumerable lst, Type type)
@@ -20,6 +33,20 @@ internal static class CastHelper
         foreach (var item in lst)
             yield return item.Cast(type);
     }
+
+    public static IEnumerable CastTo
+        (this JsonElement element, Type type)
+    {
+        if (element.ValueKind != JsonValueKind.Array) yield break;
+
+        foreach (var item in element
+            .EnumerateArray())
+            yield return item.Cast(type);
+    }
+
+    public static Type GetTypeOfGeneric
+        (this Type type)
+        => type.GetGenericArguments()[0];
 
     public static bool HasInterface<T>
         (this Type type)
@@ -55,24 +82,6 @@ internal static class CastHelper
 
     public static Array ToArrayOf
         (this JsonElement element, Type type)
-    {
-        List<object> lst2 = new();
-
-        if (element.ValueKind != JsonValueKind.Array)
-            return System.Array
-                .CreateInstance(type, 0);
-
-        foreach (var item in element.EnumerateArray())
-            lst2.Add(item.GetRawText().Cast(type));
-
-        var arrayFrom = lst2.ToArray() as Array;
-
-        var array = System.Array
-            .CreateInstance(type, arrayFrom.Length);
-
-        System.Array.Copy
-            (arrayFrom, array, arrayFrom.Length);
-
-        return array;
-    }
+        => element.CastTo(type)
+            .ToArrayOf(type);
 }
