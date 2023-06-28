@@ -1,47 +1,49 @@
 ﻿using FilterDemo;
 using FilterDemo.Entities;
 
-var customers = new List<Customer>
+List<Customer> customers = new()
 {
-    new Customer { Id = 1, Name = "John Doe", Age = 30, Address = "123 Main St" },
-    new Customer { Id = 2, Name = "Jane Smith", Age = 25, Address = "456 Elm St" },
-    new Customer { Id = 3, Name = "Mike Johnson", Age = 40, Address = "789 Oak St" },
+    new() { Id = 1, Name = "John Doe", Age = 30, Address = "123 Main St" },
+    new() { Id = 2, Name = "Jane Smith", Age = 25, Address = "456 Elm St" },
+    new() { Id = 3, Name = "Mike Johnson", Age = 40, Address = "789 Oak St" },
 };
 
-var filterParameters = new FilterRequest
+FilterRequest rq = new()
 {
     Filters = new()
     {
         new()
         {
-            Name = "Age",
+            Name = nameof(Customer.Age),
             Value = 30,
             Operator = FilterOperator.Equals
         },
         new()
         {
-            Name = "Address",
+            Name = nameof(Customer.Address),
             Value = "Main",
             Operator = FilterOperator.Contains
         }
     },
     Sort = new()
     {
-        Name = "Name",
+        Name = nameof(Customer.Name),
         Direction = SortDirection.Ascending
     },
-    Select = new List<string> { "Id", "Name" },
+    Select = new() {
+        nameof(Customer.Id),
+        nameof(Customer.Name)
+    },
     Page = 1,
     PageSize = 10,
     Count = true
 };
 
-var result = customers.AsQueryable()
-    .ApplyFilters(filterParameters);
+var rs = rq.Apply(customers);
 
-Console.WriteLine($"Filtered Customers (Page {result.Page}/{result.PageCount}):");
+Console.WriteLine($"Filtered Customers (Page {rs.Page}/{rs.PageCount}):");
 
-foreach (var customer in result.Data)
+foreach (var customer in rs.Data)
 {
     Console.WriteLine($"ID: {customer.Id}, Name: {customer.Name}");
 }

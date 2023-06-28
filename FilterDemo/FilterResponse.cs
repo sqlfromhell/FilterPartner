@@ -1,14 +1,15 @@
-﻿namespace FilterDemo;
+namespace FilterDemo;
 
 public class FilterResponse<T>
 {
+    public FilterResponse()
+    { }
+
     public FilterResponse
         (List<T> data)
     {
         Data = data;
-        Page = 1;
         PageSize = data.Count;
-        TotalCount = null;
     }
 
     public FilterResponse
@@ -23,6 +24,7 @@ public class FilterResponse<T>
     public List<T> Data { get; set; }
 
     public int Page { get; set; }
+        = 1;
 
     public int PageCount
         => PageSize > 0
