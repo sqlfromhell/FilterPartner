@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Text.Json;
+using FilterDemo.Entities;
 using NUnit.Framework;
 
 namespace FilterDemo.Tests;
@@ -35,6 +36,12 @@ public class CustomerFilterTest
                 Age = 30,
                 Address = "321 Pine St"
             },
+            new() {
+                Id = 5,
+                Name = "Michel Mark",
+                Age = null,
+                Address = "548 Azure Sq"
+            }
         };
 
     [Test]
@@ -93,6 +100,39 @@ public class CustomerFilterTest
         Assert.That(rs.Data.All(c => c.Age == 30), Is.True);
 
         Assert.That(rs.Data.All(c => c.Address.Contains("Main")), Is.True);
+    }
+
+    [Test]
+    public void Should_Apply_When_Custom()
+    {
+        // Arrange
+
+        static bool Filter(Customer c)
+            => c.Age is >= 30 and <= 40;
+
+        Expression<Func<Customer, bool>> exp =
+            c => c.Age >= 30 && c.Age <= 40;
+
+        FilterRequest rq = new()
+        {
+            CustomFilters = new()
+            {
+                new()
+                {
+                    Expression = exp
+                }
+            }
+        };
+
+        // Act
+
+        var rs = rq.Apply(Customers);
+
+        // Assert
+
+        Assert.That(rs.Data, Has.Count.EqualTo(3));
+
+        Assert.That(rs.Data.All(Filter), Is.True);
     }
 
     [Test]
@@ -540,7 +580,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.AreEqual(2, rs.Count);
+        Assert.AreEqual(3, rs.Count);
         Assert.IsTrue(rs.All(c => c.Age != 30));
     }
 
@@ -568,7 +608,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.AreEqual(3, rs.Count);
+        Assert.AreEqual(4, rs.Count);
         Assert.IsTrue(rs.All(c => c.BirthDate != new DateTime(1986, 12, 2)));
     }
 
@@ -599,7 +639,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.AreEqual(2, rs.Count);
+        Assert.AreEqual(3, rs.Count);
         Assert.IsTrue(rs.All(c => c.Age != 30));
     }
 
@@ -683,7 +723,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.AreEqual(0, rs.Count);
+        Assert.AreEqual(1, rs.Count);
 
         Assert.IsFalse(rs.Any(c => c.Address.Contains("St")));
     }
@@ -715,7 +755,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.AreEqual(0, rs.Count);
+        Assert.AreEqual(1, rs.Count);
 
         Assert.IsFalse(rs.Any(c => c.Address.Contains("St")));
     }
@@ -748,7 +788,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.That(rs, Has.Count.EqualTo(2));
+        Assert.That(rs, Has.Count.EqualTo(3));
 
         Assert.That(rs.All(c => !c.Age.HasValue || !ages.Contains(c.Age.Value)), Is.True);
     }
@@ -784,7 +824,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.That(rs, Has.Count.EqualTo(2));
+        Assert.That(rs, Has.Count.EqualTo(3));
 
         Assert.That(rs.All(c => !c.Age.HasValue || !ages.Contains(c.Age.Value)), Is.True);
     }
@@ -817,7 +857,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.That(rs, Has.Count.EqualTo(2));
+        Assert.That(rs, Has.Count.EqualTo(3));
 
         Assert.That(rs.All(c => !c.Age.HasValue || !ages.Contains(c.Age.Value)), Is.True);
     }
@@ -850,7 +890,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.That(rs, Has.Count.EqualTo(2));
+        Assert.That(rs, Has.Count.EqualTo(3));
 
         Assert.That(!rs.All(c => names.Contains(c.Name)), Is.True);
     }
@@ -929,7 +969,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.AreEqual(4, count);
+        Assert.AreEqual(5, count);
     }
 
     [Test]
@@ -953,7 +993,7 @@ public class CustomerFilterTest
         Assert.AreEqual(2, rs.Data.Count);
         Assert.AreEqual(2, rs.Page);
         Assert.AreEqual(2, rs.PageSize);
-        Assert.AreEqual(4, rs.TotalCount);
+        Assert.AreEqual(5, rs.TotalCount);
     }
 
     [Test]
@@ -977,7 +1017,7 @@ public class CustomerFilterTest
 
         // Assert
 
-        Assert.AreEqual(4, rs.Count);
+        Assert.AreEqual(5, rs.Count);
 
         Assert.IsTrue(rs.All(c => c.Age == null && c.Address == null));
     }
@@ -1030,14 +1070,5 @@ public class CustomerFilterTest
         // Assert
 
         Assert.AreEqual(expectedOrder, sortedCustomers);
-    }
-
-    public class Customer
-    {
-        public string Address { get; set; }
-        public int? Age { get; set; }
-        public DateTime? BirthDate { get; set; }
-        public int Id { get; set; }
-        public string Name { get; set; }
     }
 }

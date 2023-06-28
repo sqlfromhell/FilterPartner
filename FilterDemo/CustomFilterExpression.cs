@@ -1,9 +1,11 @@
 using System.Linq.Expressions;
+using System.Text.Json.Serialization;
 
 namespace FilterDemo;
 
 public class CustomFilterExpression
 {
+    [JsonIgnore]
     public Expression Expression { get; set; }
 
     public IQueryable<T> Apply<T>
