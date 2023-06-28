@@ -7,36 +7,35 @@ namespace FilterDemo.Tests;
 [TestFixture]
 public class CustomerFilterTest
 {
-    private readonly List<Customer> Customers
-    = new()
-    {
+    private readonly List<Customer> Customers =
         new() {
-            Id = 1,
-            Name = "John Doe",
-            Age = 30,
-            Address = "123 Main St",
-            BirthDate = new(1986, 12, 2)
-        },
-        new() {
-            Id = 2,
-            Name = "Jane Smith",
-            Age = 25,
-            Address = "456 Elm St",
-            BirthDate = new(1991, 8, 2)
-        },
-        new() {
-            Id = 3,
-            Name = "Mike Johnson",
-            Age = 40,
-            Address = "789 Oak St"
-        },
-        new() {
-            Id = 4,
-            Name = "Alice Cooper",
-            Age = 30,
-            Address = "321 Pine St"
-        },
-    };
+            new() {
+                Id = 1,
+                Name = "John Doe",
+                Age = 30,
+                Address = "123 Main St",
+                BirthDate = new(1986, 12, 2)
+            },
+            new() {
+                Id = 2,
+                Name = "Jane Smith",
+                Age = 25,
+                Address = "456 Elm St",
+                BirthDate = new(1991, 8, 2)
+            },
+            new() {
+                Id = 3,
+                Name = "Mike Johnson",
+                Age = 40,
+                Address = "789 Oak St"
+            },
+            new() {
+                Id = 4,
+                Name = "Alice Cooper",
+                Age = 30,
+                Address = "321 Pine St"
+            },
+        };
 
     [Test]
     public void Should_Apply()

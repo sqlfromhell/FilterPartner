@@ -1,5 +1,7 @@
-﻿using FilterDemo;
+using FilterDemo;
 using FilterDemo.Entities;
+
+// Arrange
 
 List<Customer> customers = new()
 {
@@ -39,7 +41,11 @@ FilterRequest rq = new()
     Count = true
 };
 
+// Act
+
 var rs = rq.Apply(customers);
+
+// Assert
 
 Console.WriteLine($"Filtered Customers (Page {rs.Page}/{rs.PageCount}):");
 

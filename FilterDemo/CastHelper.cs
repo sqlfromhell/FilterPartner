@@ -53,10 +53,6 @@ internal static class CastHelper
         => type.GetInterfaces()
             .Contains(typeof(T));
 
-    public static bool IsEnumerable
-        (this Type type)
-        => type.HasInterface<IEnumerable>();
-
     public static bool IsNullableType
         (this Type type)
         => type.IsGenericType
